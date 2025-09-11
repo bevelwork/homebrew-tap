@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "17 5 * * *" # Daily at 05:17 UTC
 
+# Required permissions:
+# - contents: write (to create branches, push commits, modify files)
+# - pull-requests: write (to create pull requests)
+# Token requirements: GITHUB_TOKEN (default) with repo scope
 permissions:
   contents: write
   pull-requests: write
@@ -16,8 +20,6 @@ jobs:
     steps:
       - name: Checkout current repo
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.TOKEN }}
 
       - name: Get latest release from upstream
         id: get_release
@@ -86,6 +88,6 @@ jobs:
             --base main \
             --head "$BRANCH_NAME"
         env:
-          GH_TOKEN: ${{ secrets.TOKEN }}
+          GH_TOKEN: ${{ github.token }}
 
 
