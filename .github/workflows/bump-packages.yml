@@ -1,41 +1,91 @@
-name: Bump Homebrew packages
+name: Bump quick-ssm formula
 
 on:
   workflow_dispatch:
-    inputs:
-      fork:
-        description: "Do not use a fork for opening PRs (true/false)"
-        required: false
-        default: "false"
   schedule:
     - cron: "17 5 * * *" # Daily at 05:17 UTC
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
-
-concurrency:
-  group: bump-packages-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   bump:
-    name: Bump formulae
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    name: Update quick-ssm formula
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout tap
+      - name: Checkout current repo
         uses: actions/checkout@v4
-
-      - name: Bump packages
-        uses: Homebrew/actions/bump-packages@main
         with:
           token: ${{ secrets.TOKEN }}
-          formulae: |
-            quick-ssm
-          fork: ${{ inputs.fork || false }}
+
+      - name: Get latest release from upstream
+        id: get_release
+        run: |
+          # Get latest release info from GitHub API
+          RELEASE_INFO=$(curl -s https://api.github.com/repos/bevelwork/quick_ssm/releases/latest)
+          VERSION=$(echo "$RELEASE_INFO" | jq -r '.tag_name' | sed 's/^v//')
+          TARBALL_URL=$(echo "$RELEASE_INFO" | jq -r '.tarball_url')
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tarball_url=$TARBALL_URL" >> $GITHUB_OUTPUT
+          echo "Latest version: $VERSION"
+
+      - name: Download and calculate SHA256
+        id: calc_sha
+        run: |
+          # Download the tarball and calculate SHA256
+          curl -L -o /tmp/quick_ssm.tar.gz "${{ steps.get_release.outputs.tarball_url }}"
+          SHA256=$(sha256sum /tmp/quick_ssm.tar.gz | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "SHA256: $SHA256"
+
+      - name: Update formula
+        run: |
+          VERSION="${{ steps.get_release.outputs.version }}"
+          SHA256="${{ steps.calc_sha.outputs.sha256 }}"
+          
+          # Update the formula file
+          sed -i "s|url \".*\"|url \"https://github.com/bevelwork/quick_ssm/archive/refs/tags/v${VERSION}.tar.gz\"|" Formula/quick-ssm.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/quick-ssm.rb
+          
+          echo "Updated formula:"
+          cat Formula/quick-ssm.rb
+
+      - name: Check if changes exist
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create pull request
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Create branch and commit
+          BRANCH_NAME="bump-quick-ssm-${{ steps.get_release.outputs.version }}"
+          git checkout -b "$BRANCH_NAME"
+          git add Formula/quick-ssm.rb
+          git commit -m "Bump quick-ssm to ${{ steps.get_release.outputs.version }}"
+          
+          # Push branch
+          git push origin "$BRANCH_NAME"
+          
+          # Create PR using GitHub CLI
+          gh pr create \
+            --title "Bump quick-ssm to ${{ steps.get_release.outputs.version }}" \
+            --body "Automated update of quick-ssm formula to version ${{ steps.get_release.outputs.version }}" \
+            --base main \
+            --head "$BRANCH_NAME"
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
 
 
