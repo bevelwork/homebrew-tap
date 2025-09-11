@@ -1,0 +1,41 @@
+name: Bump Homebrew packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      fork:
+        description: "Do not use a fork for opening PRs (true/false)"
+        required: false
+        default: "false"
+  schedule:
+    - cron: "17 5 * * *" # Daily at 05:17 UTC
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: bump-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Bump formulae
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v4
+
+      - name: Bump packages
+        uses: Homebrew/actions/bump-packages@main
+        with:
+          token: ${{ secrets.TOKEN }}
+          formulae: |
+            quick-ssm
+          fork: ${{ inputs.fork || false }}
+
+
