@@ -72,14 +72,15 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-          # Create branch and commit
-          BRANCH_NAME="bump-quick-ssm-${{ steps.get_release.outputs.version }}"
+          # Create unique branch name with timestamp
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          BRANCH_NAME="bump-quick-ssm-${{ steps.get_release.outputs.version }}-$TIMESTAMP"
           git checkout -b "$BRANCH_NAME"
           git add Formula/quick-ssm.rb
           git commit -m "Bump quick-ssm to ${{ steps.get_release.outputs.version }}"
           
-          # Push branch
-          git push origin "$BRANCH_NAME"
+          # Push branch (force push to handle existing branches)
+          git push origin "$BRANCH_NAME" --force
           
           # Create PR using GitHub CLI
           gh pr create \
