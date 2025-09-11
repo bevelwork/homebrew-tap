@@ -83,14 +83,16 @@ jobs:
           git push origin "$BRANCH_NAME" --force
           
           # Create PR using GitHub CLI
-          PR_NUMBER=$(gh pr create \
+          PR_URL=$(gh pr create \
             --title "Bump quick-ssm to ${{ steps.get_release.outputs.version }}" \
             --body "Automated update of quick-ssm formula to version ${{ steps.get_release.outputs.version }}" \
             --base main \
-            --head "$BRANCH_NAME" \
-            --json number --jq '.number')
+            --head "$BRANCH_NAME")
           
-          echo "Created PR #$PR_NUMBER"
+          echo "Created PR: $PR_URL"
+          
+          # Extract PR number from URL
+          PR_NUMBER=$(echo "$PR_URL" | grep -o '/pull/[0-9]*' | grep -o '[0-9]*')
           
           # Wait a moment for PR to be fully created
           sleep 5
