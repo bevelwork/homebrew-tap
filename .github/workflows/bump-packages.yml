@@ -27,17 +27,18 @@ jobs:
           # Get latest release info from GitHub API
           RELEASE_INFO=$(curl -s https://api.github.com/repos/bevelwork/quick_ssm/releases/latest)
           VERSION=$(echo "$RELEASE_INFO" | jq -r '.tag_name' | sed 's/^v//')
-          TARBALL_URL=$(echo "$RELEASE_INFO" | jq -r '.tarball_url')
+          # Construct the exact archive URL used in the formula
+          ARCHIVE_URL="https://github.com/bevelwork/quick_ssm/archive/refs/tags/${VERSION}.tar.gz"
           
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tarball_url=$TARBALL_URL" >> $GITHUB_OUTPUT
+          echo "archive_url=$ARCHIVE_URL" >> $GITHUB_OUTPUT
           echo "Latest version: $VERSION"
 
       - name: Download and calculate SHA256
         id: calc_sha
         run: |
           # Download the tarball and calculate SHA256
-          curl -L -o /tmp/quick_ssm.tar.gz "${{ steps.get_release.outputs.tarball_url }}"
+          curl -L -o /tmp/quick_ssm.tar.gz "${{ steps.get_release.outputs.archive_url }}"
           SHA256=$(sha256sum /tmp/quick_ssm.tar.gz | cut -d' ' -f1)
           echo "sha256=$SHA256" >> $GITHUB_OUTPUT
           echo "SHA256: $SHA256"
