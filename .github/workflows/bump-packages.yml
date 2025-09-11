@@ -7,7 +7,7 @@ on:
 
 # Required permissions:
 # - contents: write (to create branches, push commits, modify files)
-# - pull-requests: write (to create pull requests)
+# - pull-requests: write (to create and merge pull requests)
 # Token requirements: GITHUB_TOKEN (default) with repo scope
 permissions:
   contents: write
@@ -83,11 +83,25 @@ jobs:
           git push origin "$BRANCH_NAME" --force
           
           # Create PR using GitHub CLI
-          gh pr create \
+          PR_NUMBER=$(gh pr create \
             --title "Bump quick-ssm to ${{ steps.get_release.outputs.version }}" \
             --body "Automated update of quick-ssm formula to version ${{ steps.get_release.outputs.version }}" \
             --base main \
-            --head "$BRANCH_NAME"
+            --head "$BRANCH_NAME" \
+            --json number --jq '.number')
+          
+          echo "Created PR #$PR_NUMBER"
+          
+          # Wait a moment for PR to be fully created
+          sleep 5
+          
+          # Merge the PR
+          gh pr merge "$PR_NUMBER" \
+            --merge \
+            --delete-branch \
+            --body "Automatically merged by GitHub Actions"
+          
+          echo "Successfully merged PR #$PR_NUMBER"
         env:
           GH_TOKEN: ${{ github.token }}
 
