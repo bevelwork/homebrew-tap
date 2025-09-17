@@ -2,6 +2,8 @@ name: Check sources for new releases
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
   schedule:
     - cron: "17 5 * * *" # Daily at 05:17 UTC
 
