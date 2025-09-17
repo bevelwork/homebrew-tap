@@ -30,8 +30,8 @@ jobs:
           # Construct the exact archive URL used in the formula
           ARCHIVE_URL="https://github.com/bevelwork/quick_ssm/archive/refs/tags/${VERSION}.tar.gz"
           
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "archive_url=$ARCHIVE_URL" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "archive_url=$ARCHIVE_URL" >> "$GITHUB_OUTPUT"
           echo "Latest version: $VERSION"
 
       - name: Download and calculate SHA256
@@ -40,7 +40,7 @@ jobs:
           # Download the tarball and calculate SHA256
           curl -L -o /tmp/quick_ssm.tar.gz "${{ steps.get_release.outputs.archive_url }}"
           SHA256=$(sha256sum /tmp/quick_ssm.tar.gz | cut -d' ' -f1)
-          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "SHA256: $SHA256"
 
       - name: Update formula
@@ -60,10 +60,10 @@ jobs:
         run: |
           if git diff --quiet; then
             echo "No changes needed"
-            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "Changes detected"
-            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create pull request
@@ -87,6 +87,101 @@ jobs:
           PR_URL=$(gh pr create \
             --title "Bump quick-ssm to ${{ steps.get_release.outputs.version }}" \
             --body "Automated update of quick-ssm formula to version ${{ steps.get_release.outputs.version }}" \
+            --base main \
+            --head "$BRANCH_NAME")
+          
+          echo "Created PR: $PR_URL"
+          
+          # Extract PR number from URL
+          PR_NUMBER=$(echo "$PR_URL" | grep -o '/pull/[0-9]*' | grep -o '[0-9]*')
+          
+          # Wait a moment for PR to be fully created
+          sleep 5
+          
+          # Merge the PR
+          gh pr merge "$PR_NUMBER" \
+            --merge \
+            --delete-branch \
+            --body "Automatically merged by GitHub Actions"
+          
+          echo "Successfully merged PR #$PR_NUMBER"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+
+  bump_quick_pipreqs:
+    name: Update quick-pipreqs formula
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+
+      - name: Get latest release from upstream
+        id: get_release
+        run: |
+          # Get latest release info from GitHub API
+          RELEASE_INFO=$(curl -s https://api.github.com/repos/bevelwork/quick_pipreqs/releases/latest)
+          VERSION=$(echo "$RELEASE_INFO" | jq -r '.tag_name' | sed 's/^v//')
+          # Construct the exact archive URL used in the formula
+          ARCHIVE_URL="https://github.com/bevelwork/quick_pipreqs/archive/refs/tags/${VERSION}.tar.gz"
+          
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "archive_url=$ARCHIVE_URL" >> "$GITHUB_OUTPUT"
+          echo "Latest version: $VERSION"
+
+      - name: Download and calculate SHA256
+        id: calc_sha
+        run: |
+          # Download the tarball and calculate SHA256
+          curl -L -o /tmp/quick_pipreqs.tar.gz "${{ steps.get_release.outputs.archive_url }}"
+          SHA256=$(sha256sum /tmp/quick_pipreqs.tar.gz | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "SHA256: $SHA256"
+
+      - name: Update formula
+        run: |
+          VERSION="${{ steps.get_release.outputs.version }}"
+          SHA256="${{ steps.calc_sha.outputs.sha256 }}"
+          
+          # Update the formula file
+          sed -i "s|url \".*\"|url \"https://github.com/bevelwork/quick_pipreqs/archive/refs/tags/${VERSION}.tar.gz\"|" Formula/quick-pipreqs.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/quick-pipreqs.rb
+          
+          echo "Updated formula:"
+          cat Formula/quick-pipreqs.rb
+
+      - name: Check if changes exist
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes detected"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Create unique branch name with timestamp
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          BRANCH_NAME="bump-quick-pipreqs-${{ steps.get_release.outputs.version }}-$TIMESTAMP"
+          git checkout -b "$BRANCH_NAME"
+          git add Formula/quick-pipreqs.rb
+          git commit -m "Bump quick-pipreqs to ${{ steps.get_release.outputs.version }}"
+          
+          # Push branch (force push to handle existing branches)
+          git push origin "$BRANCH_NAME" --force
+          
+          # Create PR using GitHub CLI
+          PR_URL=$(gh pr create \
+            --title "Bump quick-pipreqs to ${{ steps.get_release.outputs.version }}" \
+            --body "Automated update of quick-pipreqs formula to version ${{ steps.get_release.outputs.version }}" \
             --base main \
             --head "$BRANCH_NAME")
           
