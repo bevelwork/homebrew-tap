@@ -10,12 +10,12 @@ class QuickEcs < Formula
   # Until a tagged release is published, build from the main branch.
   head "https://github.com/bevelwork/quick_ecs.git", branch: "main"
 
-  depends_on "go" => :build
-
   livecheck do
     url :stable
     strategy :github_latest
   end
+
+  depends_on "go" => :build
 
   def install
     ldflags = "-s -w -X main.version=#{version}"
@@ -28,5 +28,3 @@ class QuickEcs < Formula
     assert_match(/^[vV]?\d+\.\d+|unknown/, out)
   end
 end
-
-

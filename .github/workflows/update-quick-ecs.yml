@@ -26,14 +26,13 @@ jobs:
         env:
           DISPATCH_TAG: ${{ github.event.client_payload.tag }}
           INPUT_TAG: ${{ github.event.inputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${INPUT_TAG:-${DISPATCH_TAG}}"
           if [ -z "$TAG" ]; then
             TAG=$(gh api repos/bevelwork/quick_ecs/releases/latest --jq .tag_name)
           fi
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Download tarball and compute sha256
         id: tar
@@ -41,8 +40,8 @@ jobs:
           URL="https://github.com/bevelwork/quick_ecs/archive/refs/tags/${{ steps.resolve.outputs.tag }}.tar.gz"
           curl -sSL "$URL" -o source.tgz
           SHA=$(sha256sum source.tgz | awk '{print $1}')
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Update quick-ecs.rb
         run: |
@@ -68,5 +67,3 @@ jobs:
           fi
           git commit -m "quick-ecs: bump to ${{ steps.resolve.outputs.tag }}"
           git push
-
-
