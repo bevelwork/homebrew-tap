@@ -4,7 +4,7 @@ class QuickNatsAreBad < Formula
   license "Apache-2.0"
 
   # Stable: point to a tagged release tarball when available.
-  url "https://github.com/bevelwork/quick_nats_are_bad/archive/refs/tags/1.4.20251008.tar.gz"
+  url "https://github.com/bevelwork/quick_nats_are_bad/archive/refs/tags/1.5.20251008.tar.gz"
   # sha256 "REPLACE_WITH_REAL_SHA256"
 
   # Until a tagged release is published, build from the main branch.
