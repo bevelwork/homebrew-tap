@@ -29,3 +29,5 @@ class QuickTag < Formula
     assert_match(/^[vV]?\d+\.\d+|unknown/, out)
   end
 end
+
+

@@ -27,10 +27,10 @@ jobs:
         id: get_release
         run: |
           # Get latest release info from GitHub API
-          RELEASE_INFO=$(curl -s https://api.github.com/repos/bevelwork/quick_pipreqs/releases/latest)
+          RELEASE_INFO=$(curl -s https://api.github.com/repos/bevelwork/quick_ssm/releases/latest)
           VERSION=$(echo "$RELEASE_INFO" | jq -r '.tag_name' | sed 's/^v//')
           # Construct the exact archive URL used in the formula
-          ARCHIVE_URL="https://github.com/bevelwork/quick_pipreqs/archive/refs/tags/${VERSION}.tar.gz"
+          ARCHIVE_URL="https://github.com/bevelwork/quick_ssm/archive/refs/tags/${VERSION}.tar.gz"
           
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "archive_url=$ARCHIVE_URL" >> "$GITHUB_OUTPUT"
@@ -40,8 +40,8 @@ jobs:
         id: calc_sha
         run: |
           # Download the tarball and calculate SHA256
-          curl -L -o /tmp/quick_pipreqs.tar.gz "${{ steps.get_release.outputs.archive_url }}"
-          SHA256=$(sha256sum /tmp/quick_pipreqs.tar.gz | cut -d' ' -f1)
+          curl -L -o /tmp/quick_ssm.tar.gz "${{ steps.get_release.outputs.archive_url }}"
+          SHA256=$(sha256sum /tmp/quick_ssm.tar.gz | cut -d' ' -f1)
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "SHA256: $SHA256"
 
@@ -51,11 +51,11 @@ jobs:
           SHA256="${{ steps.calc_sha.outputs.sha256 }}"
           
           # Update the formula file
-          sed -i "s|url \".*\"|url \"https://github.com/bevelwork/quick_pipreqs/archive/refs/tags/${VERSION}.tar.gz\"|" Formula/quick-pipreqs.rb
-          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/quick-pipreqs.rb
+          sed -i "s|url \".*\"|url \"https://github.com/bevelwork/quick_ssm/archive/refs/tags/${VERSION}.tar.gz\"|" Formula/quick-ssm.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/quick-ssm.rb
           
           echo "Updated formula:"
-          cat Formula/quick-pipreqs.rb
+          cat Formula/quick-ssm.rb
 
       - name: Check if changes exist
         id: check_changes
@@ -150,7 +150,7 @@ jobs:
           sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/quick-pipreqs.rb
           
           echo "Updated formula:"
-          cat Formula/quick-pipreqs.rb
+          cat Formula/quick-ssm.rb
 
       - name: Check if changes exist
         id: check_changes
