@@ -1,4 +1,4 @@
-.PHONY: bump bump-quick-ssm bump-quick-tag bump-quick-ecs bump-quick-nats-are-bad watch watch-quick-ssm watch-quick-tag watch-quick-ecs watch-quick-nats-are-bad
+.PHONY: bump bump-quick-ssm bump-quick-tag bump-quick-ecs bump-quick-nats-are-bad bump-quick-time watch watch-quick-ssm watch-quick-tag watch-quick-ecs watch-quick-nats-are-bad watch-quick-time
 
 # Trigger the GitHub Actions workflow that bumps the quick-ssm formula
 bump-quick-ssm:
@@ -14,6 +14,10 @@ bump-quick-ecs:
 
 # Trigger the GitHub Actions workflow that bumps the quick-nats-are-bad formula
 bump-quick-nats-are-bad:
+	gh workflow run "Check sources for new releases" --ref main
+
+# Trigger the GitHub Actions workflow that bumps the quick-time formula
+bump-quick-time:
 	gh workflow run "Check sources for new releases" --ref main
 
 # Alias
@@ -54,6 +58,17 @@ watch-quick-ecs:
 
 # Watch the latest run for quick-nats-are-bad
 watch-quick-nats-are-bad:
+	@WORKFLOW="Check sources for new releases"; \
+	RUN_ID=$$(gh run list --workflow "$$WORKFLOW" --branch main --limit 1 --json databaseId -q '.[0].databaseId'); \
+	if [ -z "$$RUN_ID" ]; then \
+	  echo "No recent run found for '$$WORKFLOW' on 'main'"; \
+	  exit 1; \
+	fi; \
+	echo "Watching run $$RUN_ID for '$$WORKFLOW'..."; \
+	gh run watch $$RUN_ID --exit-status
+
+# Watch the latest run for quick-time
+watch-quick-time:
 	@WORKFLOW="Check sources for new releases"; \
 	RUN_ID=$$(gh run list --workflow "$$WORKFLOW" --branch main --limit 1 --json databaseId -q '.[0].databaseId'); \
 	if [ -z "$$RUN_ID" ]; then \

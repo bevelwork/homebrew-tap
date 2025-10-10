@@ -469,3 +469,91 @@ jobs:
           echo "Successfully merged PR #$PR_NUMBER"
         env:
           GH_TOKEN: ${{ github.token }}
+
+  bump_quick_time:
+    name: Update quick-time formula
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+
+      - name: Get latest release from upstream
+        id: get_release
+        run: |
+          RELEASE_INFO=$(curl -s https://api.github.com/repos/bevelwork/quick_time/releases/latest)
+          VERSION=$(echo "$RELEASE_INFO" | jq -r '.tag_name')
+          ARCHIVE_URL="https://github.com/bevelwork/quick_time/archive/refs/tags/${VERSION}.tar.gz"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "archive_url=$ARCHIVE_URL" >> "$GITHUB_OUTPUT"
+          echo "Latest version: $VERSION"
+
+      - name: Download and calculate SHA256
+        id: calc_sha
+        run: |
+          curl -L -o /tmp/quick_time.tar.gz "${{ steps.get_release.outputs.archive_url }}"
+          SHA256=$(sha256sum /tmp/quick_time.tar.gz | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "SHA256: $SHA256"
+
+      - name: Update formula
+        run: |
+          VERSION="${{ steps.get_release.outputs.version }}"
+          SHA256="${{ steps.calc_sha.outputs.sha256 }}"
+
+          FILE=Formula/quick-time.rb
+          URL_LINE="  url \"https://github.com/bevelwork/quick_time/archive/refs/tags/${VERSION}.tar.gz\""
+          SHA_LINE="  sha256 \"${SHA256}\""
+
+          if grep -q '^\s*url\s*"https://github.com/bevelwork/quick_time' "$FILE"; then
+            sed -i "s|^\s*url\s*\"https://github.com/bevelwork/quick_time.*|$URL_LINE|" "$FILE"
+          else
+            awk -v u="$URL_LINE" '1; NR==6{print u}' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
+          fi
+
+          if grep -q '^\s*sha256\s*"' "$FILE"; then
+            sed -i "s|^\s*sha256\s*\".*\"|$SHA_LINE|" "$FILE"
+          else
+            awk -v s="$SHA_LINE" '1; /url \\"https:\\/\\/github.com\\/bevelwork\\/quick_time/{print s}' "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE"
+          fi
+
+          echo "Updated formula:"
+          cat "$FILE"
+
+      - name: Check if changes exist
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes needed"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes detected"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create pull request
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          CLEAN_TAG=$(echo "${{ steps.get_release.outputs.version }}" | sed 's/^v//')
+          BRANCH_NAME="bump-quick-time-${CLEAN_TAG}-$TIMESTAMP"
+          git checkout -b "$BRANCH_NAME"
+          git add Formula/quick-time.rb
+          git commit -m "Bump quick-time to ${{ steps.get_release.outputs.version }}"
+          git push origin "$BRANCH_NAME" --force
+          PR_URL=$(gh pr create \
+            --title "Bump quick-time to ${{ steps.get_release.outputs.version }}" \
+            --body "Automated update of quick-time formula to version ${{ steps.get_release.outputs.version }}" \
+            --base main \
+            --head "$BRANCH_NAME")
+          echo "Created PR: $PR_URL"
+          PR_NUMBER=$(echo "$PR_URL" | grep -o '/pull/[0-9]*' | grep -o '[0-9]*')
+          sleep 5
+          gh pr merge "$PR_NUMBER" \
+            --merge \
+            --delete-branch \
+            --body "Automatically merged by GitHub Actions"
+          echo "Successfully merged PR #$PR_NUMBER"
+        env:
+          GH_TOKEN: ${{ github.token }}
