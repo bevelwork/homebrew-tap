@@ -4,7 +4,7 @@ class QuickEcs < Formula
   license "Apache-2.0"
 
   # Stable: point to a tagged release tarball when available.
-  url "https://github.com/bevelwork/quick_ecs/archive/refs/tags/v1.8.20251008.tar.gz"
+  url "https://github.com/bevelwork/quick_ecs/archive/refs/tags/v1.10.20250109.tar.gz"
   # url "https://github.com/bevelwork/quick_ecs/archive/refs/tags/v0.1.0.tar.gz"
   # sha256 "REPLACE_WITH_REAL_SHA256"
 
