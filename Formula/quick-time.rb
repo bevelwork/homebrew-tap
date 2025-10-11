@@ -4,7 +4,7 @@ class QuickTime < Formula
   license "Apache-2.0"
 
   # Stable: point to a tagged release tarball when available.
-  url "https://github.com/bevelwork/quick_time/archive/refs/tags/v1.7.0.tar.gz"
+  url "https://github.com/bevelwork/quick_time/archive/refs/tags/v1.10.0.tar.gz"
   # url "https://github.com/bevelwork/quick_time/archive/refs/tags/v1.7.0.tar.gz"
   # sha256 "REPLACE_WITH_REAL_SHA256"
 
