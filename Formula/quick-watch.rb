@@ -1,8 +1,8 @@
 class QuickWatch < Formula
   desc "Simple Go CLI tool for monitoring URLs and services with configurable alerts and webhook notifications"
   homepage "https://github.com/bevelwork/quick_watch"
-  url "https://github.com/bevelwork/quick_watch/archive/refs/tags/1.20.20251018.tar.gz"
-  sha256 "c25136bca08a8ab80648f1d37e7af185cd46d92bd0a423973e9179b1c8e9f957"
+  url "https://github.com/bevelwork/quick_watch/archive/refs/tags/null.tar.gz"
+  sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
   license "Apache-2.0"
 
   depends_on "go" => :build
