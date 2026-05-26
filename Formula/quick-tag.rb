@@ -4,7 +4,7 @@ class QuickTag < Formula
   license "Apache-2.0"
 
   # Stable: point to a tagged release tarball when available.
-  url "https://github.com/bevelwork/quick_tag/archive/refs/tags/v1.4.20251024.tar.gz"
+  url "https://github.com/bevelwork/quick_tag/archive/refs/tags/null.tar.gz"
   # url "https://github.com/bevelwork/quick_tag/archive/refs/tags/v1.0.0.tar.gz"
   # sha256 "REPLACE_WITH_REAL_SHA256"
 
