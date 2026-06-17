@@ -1,0 +1,15 @@
+version: "1.0"
+created: 2025-10-16T08:07:13.57883267-04:00
+updated: 2025-10-16T08:07:13.578841126-04:00
+monitors: {}
+settings:
+    webhook_port: 8080
+    webhook_path: /webhook
+    check_interval: 5
+    default_threshold: 30
+    startup:
+        enabled: true
+        notifiers:
+            - console
+        check_all_monitors: false
+notifiers: {}
