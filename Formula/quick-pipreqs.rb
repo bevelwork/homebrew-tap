@@ -1,8 +1,8 @@
 class QuickPipreqs < Formula
   desc "Quickly generate requirements.txt from Python projects"
   homepage "https://github.com/bevelwork/quick_pipreqs"
-  url "https://github.com/bevelwork/quick_pipreqs/archive/refs/tags/1.8.20251007.tar.gz"
-  sha256 "7715e00ac77d2afe987c75f1080b8f61c08f6e5eb7110832e6d71f87fa9c5216"
+  url "https://github.com/bevelwork/quick_pipreqs/archive/refs/tags/.tar.gz"
+  sha256 "8e8052a0c2d1b3568998cc84bea4b37c23a7db71d547cf8f34b6b109f2f55a30"
   license "Apache-2.0"
 
   depends_on "go" => :build
