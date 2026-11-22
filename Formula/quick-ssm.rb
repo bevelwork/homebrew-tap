@@ -1,8 +1,8 @@
 class QuickSsm < Formula
   desc "Quickly connect to AWS servers from the cli. No GUI or ssh needed"
   homepage "https://github.com/bevelwork/quick_ssm"
-  url "https://github.com/bevelwork/quick_ssm/archive/refs/tags/1.35.20251008.tar.gz"
-  sha256 "ff80fe5ec4620b36ee84ae1a0a9adc6efb452d82365724cd2a4cea9474b8c007"
+  url "https://github.com/bevelwork/quick_ssm/archive/refs/tags/null.tar.gz"
+  sha256 "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"
   license "Apache-2.0"
 
   depends_on "go" => :build
